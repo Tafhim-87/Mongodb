@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box i {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .search-box input {
+            padding-left: 40px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50rem;
+        }
+        
+        .badge-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-people-fill me-2"></i>User Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="bi bi-plus-lg me-1"></i> Add User
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h2 class="h4">User Dashboard</h2>
+                <p class="text-muted mb-0">Manage your users efficiently</p>
+            </div>
+            <div class="col-md-6">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search users...">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">All Users</h5>
+                        <span class="badge bg-primary rounded-pill" id="userCount">0 users</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="usersContainer">
+                            <!-- Users will be loaded here -->
+                            <div class="col-12">
+                                <div class="d-flex justify-content-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" class="form-control" id="age" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="uniqueId" class="form-label">Unique ID</label>
+                            <input type="text" class="form-control" id="uniqueId" required>
+                            <div class="form-text">This must be a unique identifier</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="addUserForm" class="btn btn-primary">
+                        <span id="submitButtonText">Add User</span>
+                        <span id="submitButtonSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div class="modal fade" id="userDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalTitle">User Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="userDetailContent">
+                    <!-- User details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // DOM Elements
+        const usersContainer = document.getElementById('usersContainer');
+        const userCount = document.getElementById('userCount');
+        const searchInput = document.getElementById('searchInput');
+        const addUserForm = document.getElementById('addUserForm');
+        const submitButtonText = document.getElementById('submitButtonText');
+        const submitButtonSpinner = document.getElementById('submitButtonSpinner');
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAllUsers();
+            
+            // Set up event listeners
+            addUserForm.addEventListener('submit', handleAddUser);
+            searchInput.addEventListener('input', debounce(searchUsers, 300));
+        });
+        
+        // Fetch all users
+        // In your fetchAllUsers function, replace the empty state handling with this:
+async function fetchAllUsers() {
+    const usersContainer = document.getElementById('usersContainer');
+    
+    try {
+        // Show loading state
+        usersContainer.innerHTML = `
+            <div class="col-12">
+                <div class="d-flex justify-content-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const response = await fetch('http://localhost:3000/users');
+        const result = await response.json();
+        console.log('response:', result);
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to fetch users');
+        }
+        
+        if (!result.users || result.users.length === 0) {
+            showEmptyState();
+            return;
+        }
+        
+        renderUsers(result.users);
+    } catch (error) {
+        console.error('Error:', error);
+        showErrorState(error);
+    }
+}
+
+// New empty state function
+function showEmptyState() {
+    const usersContainer = document.getElementById('usersContainer');
+    usersContainer.innerHTML = `
+        <div class="col-12">
+            <div class="empty-state text-center py-5">
+                <div class="empty-state-icon mb-4">
+                    <i class="bi bi-people" style="font-size: 3rem; color: #dee2e6;"></i>
+                </div>
+                <h4 class="mb-3">No Users Found</h4>
+                <p class="text-muted mb-4">It looks like you haven't added any users yet.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="bi bi-plus-lg me-2"></i>Add Your First User
+                </button>
+                <div class="mt-4">
+                    <p class="small text-muted">or <a href="#" onclick="fetchAllUsers()">refresh the list</a></p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Enhanced error state
+function showErrorState(error) {
+    const usersContainer = document.getElementById('usersContainer');
+    usersContainer.innerHTML = `
+        <div class="col-12">
+            <div class="error-state text-center py-5">
+                <div class="error-icon mb-4">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #dc3545;"></i>
+                </div>
+                <h4 class="mb-3">Unable to Load Users</h4>
+                <p class="text-muted mb-4">${error.message || 'An error occurred while fetching users'}</p>
+                <button class="btn btn-outline-primary" onclick="fetchAllUsers()">
+                    <i class="bi bi-arrow-repeat me-2"></i>Try Again
+                </button>
+                <div class="mt-4">
+                    <details class="text-start">
+                        <summary class="small">Technical details</summary>
+                        <div class="bg-light p-3 mt-2 small">
+                            <code>${error.stack || error.toString()}</code>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+    `;
+}
+        
+        // Handle add user form submission
+        async function handleAddUser(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const uniqueId = document.getElementById('uniqueId').value;
+            
+            // Show loading state
+            submitButtonText.textContent = 'Adding...';
+            submitButtonSpinner.classList.remove('d-none');
+            
+            try {
+                const response = await fetch('http://localhost:3000/add-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, age, uniqueId })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to add user');
+                }
+                
+                // Close modal and reset form
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+                modal.hide();
+                addUserForm.reset();
+                
+                // Show success message
+                showAlert('User added successfully!', 'success');
+                
+                // Refresh user list
+                fetchAllUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message, 'danger');
+            } finally {
+                // Reset button state
+                submitButtonText.textContent = 'Add User';
+                submitButtonSpinner.classList.add('d-none');
+            }
+        }
+        
+        // View user details
+        async function viewUserDetails(uniqueId) {
+            try {
+                const response = await fetch(`http://localhost:3000/user/${uniqueId}`);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to fetch user details');
+                }
+                
+                const user = result;
+                const modalTitle = document.getElementById('detailModalTitle');
+                const modalContent = document.getElementById('userDetailContent');
+                
+                modalTitle.textContent = `${user.name}'s Details`;
+                modalContent.innerHTML = `
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+                            ${user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="ms-3">
+                            <h4 class="mb-0">${user.name}</h4>
+                            <span class="text-muted">ID: ${user.uniqueId}</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Age</h6>
+                            <p>${user.age}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Status</h6>
+                            <span class="status-badge badge-active">Active</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message, 'danger');
+            }
+        }
+        
+        // Search users
+        async function searchUsers() {
+            const query = searchInput.value.trim();
+            
+            if (query === '') {
+                fetchAllUsers();
+                return;
+            }
+            
+            try {
+                // In a real app, you would have a search endpoint
+                // For now, we'll filter the existing users
+                const response = await fetch('http://localhost:3000/users');
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to search users');
+                }
+                
+                const filteredUsers = result.users.filter(user => 
+                    user.name.toLowerCase().includes(query.toLowerCase()) ||
+                    user.uniqueId.toLowerCase().includes(query.toLowerCase())
+                );
+                
+                renderUsers(filteredUsers);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message, 'danger');
+            }
+        }
+        
+        // Helper function to show alerts
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alert.style.zIndex = '1100';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alert);
+            
+            // Remove alert after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+        
+        // Debounce function for search
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+    </script>
+</body>
+</html>
