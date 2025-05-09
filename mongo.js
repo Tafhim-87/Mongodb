@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
@@ -13,10 +15,7 @@ const corsOptions = {
 
 // Middleware
 // In your backend (Node.js/Express)
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-    credentials: true
-  }));
+app.use(cors(corsOptions));
 app.use(express.json()); // to parse JSON bodies
 app.use(express.urlencoded({ extended: true }));
 
@@ -45,7 +44,7 @@ const upload = multer({
 app.use('/uploads', express.static('uploads'));
 
 // Database connection
-mongoose.connect('mongodb://127.0.0.1:27017/test')
+mongoose.connect(`${process.env.MONGO_URL}`)
 .then(() => {
     console.log('Connected to MongoDB');
 })
@@ -205,6 +204,6 @@ app.delete('/user/:id', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log('Server started on port 3000');
+app.listen(process.env.PORT, () => {
+    console.log('Server started on port ', process.env.PORT);
 });
